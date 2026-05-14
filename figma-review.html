@@ -162,21 +162,13 @@
   .reset-btn:hover { background: #fef2f2; }
 
 
-  .backup-bar { display:flex; gap:6px; align-items:center; }
-  .backup-btn { background:none; border:1px solid var(--border); color:var(--text3); border-radius:4px; padding:3px 9px; font-size:10px; cursor:pointer; font-family:var(--font); transition:border-color 0.12s; }
-  .backup-btn:hover { border-color:var(--accent); color:var(--accent); }
-  .backup-btn.danger { border-color:#fca5a5; color:#ef4444; }
-  .backup-btn.danger:hover { background:#fef2f2; }
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .modal-box { background:var(--surface); border-radius:12px; padding:20px; width:100%; max-width:480px; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
-  .modal-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
-  .modal-sub { font-size:11px; color:var(--text3); margin-bottom:12px; line-height:1.6; }
-  .modal-ta { width:100%; height:160px; border:1.5px solid var(--border); border-radius:6px; padding:9px; font-size:11px; font-family:monospace; color:var(--text); background:var(--surface2); resize:vertical; outline:none; box-sizing:border-box; }
-  .modal-ta:focus { border-color:var(--accent); }
-  .modal-btns { display:flex; gap:6px; margin-top:10px; justify-content:flex-end; }
-  .modal-ok { background:var(--accent); color:#fff; border:none; border-radius:5px; padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font); }
-  .modal-cancel { background:none; color:var(--text4); border:1px solid var(--border); border-radius:5px; padding:5px 10px; font-size:12px; cursor:pointer; font-family:var(--font); }
-  .modal-ok:hover { opacity:0.9; }
+
+
+
+
+
+
+
 
 
   /* ── 필터 바 ── */
@@ -238,10 +230,7 @@
     </div>
     <footer>
       <span id="idx-footer-text">피그마 검수 체크리스트</span>
-      <div class="backup-bar">
-        <button class="backup-btn" onclick="exportData()">💾 내보내기</button>
-        <button class="backup-btn" onclick="showImport()">📂 불러오기</button>
-      </div>
+      <span style="font-size:10px;color:var(--text4)">MA Overview 2026</span>
     </footer>
   </div>
 
@@ -260,10 +249,6 @@
     <div class="content" id="cl-content"></div>
     <footer>
       <span id="cl-footer"></span>
-      <div class="backup-bar">
-        <button class="backup-btn" onclick="exportData()">💾 내보내기</button>
-        <button class="backup-btn danger" id="cl-reset">초기화</button>
-      </div>
     </footer>
   </div>
 
@@ -3480,103 +3465,6 @@ function countPage(page) {
 }
 
 
-// ══════════════════════════════════════════════════════════════════════════
-// EXPORT / IMPORT
-// ══════════════════════════════════════════════════════════════════════════
-const ALL_STORAGE_KEYS = [
-  "moin_checklist_splash_v1",
-  "moin_checklist_login_v1",
-  "moin_checklist_kyc_v1",
-  "moin_checklist_main_v3",
-  "moin_checklist_remit_v1",
-  "moin_checklist_study_v1",
-  "moin_checklist_refund_v1",
-  "moin_checklist_mypage_v1",
-  "moin_checklist_vv3_v1",
-  "moin_checklist_bottomsheet_v1",
-  "moin_checklist_referral_v1",
-  "moin_checklist_vip_v1",
-];
-
-async function exportData() {
-  // Supabase에서 최신 데이터 가져온 뒤 export
-  await syncFromSupabase();
-  const result = {};
-  for (const key of ALL_STORAGE_KEYS) {
-    const val = loadSt(key);
-    if (Object.keys(val).length > 0) result[key] = val;
-  }
-  const json = JSON.stringify(result, null, 2);
-  
-  // 클립보드 복사
-  try {
-    navigator.clipboard.writeText(json).then(() => showExportModal(json, true)).catch(() => showExportModal(json, false));
-  } catch {
-    showExportModal(json, false);
-  }
-}
-
-function showExportModal(json, copied) {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <div class="modal-title">💾 데이터 내보내기</div>
-      <div class="modal-sub">${copied ? '✅ 클립보드에 복사됐어요.' : '아래 내용을 복사해 두세요.'}<br>새 파일을 받은 후 '불러오기'로 붙여넣으면 복원돼요.</div>
-      <textarea class="modal-ta" readonly>${escHtml(json)}</textarea>
-      <div class="modal-btns">
-        <button class="modal-ok" onclick="this.closest('.modal-overlay').remove()">닫기</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector('textarea').select();
-}
-
-function showImport() {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-box">
-      <div class="modal-title">📂 데이터 불러오기</div>
-      <div class="modal-sub">내보내기로 복사했던 JSON을 아래에 붙여넣고 '불러오기'를 누르세요.<br>⚠️ 현재 저장된 데이터가 덮어써집니다.</div>
-      <textarea class="modal-ta" placeholder='{"moin_checklist_splash_v1": {...}, ...}'></textarea>
-      <div class="modal-btns">
-        <button class="modal-cancel" onclick="this.closest('.modal-overlay').remove()">취소</button>
-        <button class="modal-ok" onclick="importData(this)">불러오기</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector('textarea').focus();
-}
-
-function importData(btn) {
-  const overlay = btn.closest('.modal-overlay');
-  const json = overlay.querySelector('textarea').value.trim();
-  if (!json) return;
-  
-  let parsed;
-  try {
-    parsed = JSON.parse(json);
-  } catch {
-    alert('JSON 형식이 올바르지 않아요. 다시 확인해주세요.');
-    return;
-  }
-  
-  let count = 0;
-  for (const [key, val] of Object.entries(parsed)) {
-    if (ALL_STORAGE_KEYS.includes(key)) {
-      saveSt(key, val);
-      count++;
-    }
-  }
-  
-  overlay.remove();
-  alert(`✅ ${count}개 페이지 데이터를 복원했어요.`);
-  
-  if (currentPage) renderChecklist();
-  else // 시작 시 Supabase에서 동기화 후 렌더
-syncFromSupabase().then(() => renderIndex());
-}
 
 // ══════════════════════════════════════════════════════════════════════════
 // INDEX RENDER
@@ -3765,9 +3653,6 @@ function renderChecklist() {
   const filterBar = document.getElementById("cl-filter-bar");
   filterBar.style.display = "flex";
   applyFilter(_currentFilter);
-  document.getElementById("cl-reset").onclick = () => {
-    if (confirm("이 페이지의 모든 체크와 메모를 초기화할까요?")) {
-      saveSt(page.storageKey, {});
       renderChecklist();
     }
   };
