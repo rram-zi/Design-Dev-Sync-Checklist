@@ -3419,12 +3419,12 @@ function loadSt(key) {
     const val = JSON.parse(localStorage.getItem(key) || "{}");
     _memCache[key] = val;
     return val;
-  } catch { return {}; }
+  } catch(e) { return {}; }
 }
 
 function saveSt(key, d) {
   _memCache[key] = d;
-  try { localStorage.setItem(key, JSON.stringify(d)); } catch {}
+  try { localStorage.setItem(key, JSON.stringify(d)); } catch(e) {}
   // Supabase 비동기 저장 (UI는 캐시로 즉시 반영)
   _sbFetch(key, "POST", { key, data: d, updated_at: new Date().toISOString() }).catch(() => {});
 }
@@ -3658,9 +3658,6 @@ function renderChecklist() {
   const filterBar = document.getElementById("cl-filter-bar");
   filterBar.style.display = "flex";
   applyFilter(_currentFilter);
-      renderChecklist();
-    }
-  };
 }
 
 function makeCaseCard(c, idx, st, page) {
