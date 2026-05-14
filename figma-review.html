@@ -3470,6 +3470,7 @@ function countPage(page) {
 // INDEX RENDER
 // ══════════════════════════════════════════════════════════════════════════
 function renderIndex() {
+  try {
   const body = document.getElementById("idx-body");
   body.innerHTML = "";
 
@@ -3547,6 +3548,10 @@ function renderIndex() {
   const circ = document.getElementById("idx-prog-circle");
   const r = 21, circ2 = 2*Math.PI*r;
   circ.setAttribute("stroke-dashoffset", circ2*(1-pct/100));
+  } catch(e) {
+    console.error("renderIndex error:", e);
+    document.getElementById("idx-body").innerHTML = "<div style=\'padding:20px;color:red\'>렌더링 오류: " + e.message + "</div>";
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -3878,7 +3883,7 @@ function escHtml(s) {
 // ══════════════════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════════════════
-renderIndex();
+syncFromSupabase().then(() => renderIndex()).catch(() => renderIndex());
 </script>
 </body>
 </html>
